@@ -1,8 +1,8 @@
-// app.js
 const express = require('express');
 const bodyParser = require('body-parser');
 const routes = require('./server/routes'); 
 const { atualizarLocalizacaoColaborador } = require('./server/controllers');
+const { wss, broadcast } = require('./utils/websocket');
 
 require('dotenv').config();
 
@@ -24,6 +24,8 @@ app.put('/colaboradores/:id/localizacao', async (req, res) => {
     try {
         const sucesso = await atualizarLocalizacaoColaborador(id, novaLocalizacao);
         if (sucesso) {
+            const dadosAtualizados = { id, localizacao: novaLocalizacao };
+            broadcast(dadosAtualizados);
             res.sendStatus(200); 
         } else {
             res.sendStatus(500); 
@@ -34,6 +36,12 @@ app.put('/colaboradores/:id/localizacao', async (req, res) => {
     }
 });
 
-app.listen(port, () => {
+const server = app.listen(port, () => {
   console.log(`Server running on port ${port}`);
+});
+
+server.on('upgrade', (request, socket, head) => {
+    wss.handleUpgrade(request, socket, head, (ws) => {
+        wss.emit('connection', ws, request);
+    });
 });

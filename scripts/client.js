@@ -1,15 +1,35 @@
-// scripts/client.js
-
 document.addEventListener("DOMContentLoaded", function () {
     atualizarCoresDeTodosOsColaboradores();
+
+    // ----------WebSocket
+    const socket = new WebSocket(`ws://${window.location.host}`);
+
+    socket.onopen = function (event) {
+        console.log("Conexão WebSocket estabelecida");
+    };
+
+    socket.onmessage = function (event) {
+        const dadosAtualizados = JSON.parse(event.data);
+        console.log("Dados recebidos via WebSocket:", dadosAtualizados);
+        atualizarColaborador(dadosAtualizados);
+    };
+
+    socket.onclose = function (event) {
+        console.log("Conexão WebSocket fechada");
+    };
+
+    socket.onerror = function (error) {
+        console.error("Erro no WebSocket:", error);
+    };
+
     document.querySelectorAll(".colaborador").forEach(colaborador => {
         colaborador.addEventListener("click", function (event) {
-            // Lógica para manipular o clique no colaborador, se necessário
+
         });
     });
 });
 
-// Função para atualizar o status de um colaborador
+
 async function atualizarStatus(id, novaLocalizacao) {
     const newStatus = (novaLocalizacao === null || novaLocalizacao.toLowerCase() === "presente") ? 'disponível' : 'indisponível';
 
@@ -23,13 +43,11 @@ async function atualizarStatus(id, novaLocalizacao) {
         });
 
         if (response.ok) {
-            // Atualiza a interface após a atualização no servidor
+
             const colaboradorElement = document.getElementById(`colaborador-${id}`);
             const statusElement = colaboradorElement.querySelector('h3');
             statusElement.textContent = newStatus;
             atualizarCorStatus(colaboradorElement, newStatus.toLowerCase());
-
-
         } else {
             alert('Erro ao atualizar status');
         }
@@ -38,7 +56,6 @@ async function atualizarStatus(id, novaLocalizacao) {
     }
 }
 
-// Função para editar a localização de um colaborador
 async function editarLocalizacao(id) {
     const colaboradorDiv = document.getElementById(`colaborador-${id}`);
     const novaLocalizacao = prompt("Informe a nova localização:");
@@ -54,7 +71,7 @@ async function editarLocalizacao(id) {
             });
 
             if (response.ok) {
-                // Atualiza a interface com a nova localização
+
                 const localizacaoElement = colaboradorDiv.querySelector('h2');
                 localizacaoElement.textContent = novaLocalizacao;
                 atualizarStatus(id, novaLocalizacao);
@@ -67,18 +84,15 @@ async function editarLocalizacao(id) {
     }
 }
 
-// Função para atualizar as cores de todos os colaboradores
 function atualizarCoresDeTodosOsColaboradores() {
     document.querySelectorAll(".colaborador").forEach(colaborador => {
         let status = colaborador.querySelector('h3').textContent.toLowerCase().trim();
-        
-        // Remover caracteres indesejados
         status = status.replace(/[^a-zA-Zãí]/g, '');
         atualizarCorStatus(colaborador, status);
     });
 }
 
-// Função para atualizar a lista de colaboradores na interface
+
 function atualizarListaColaboradores(colaboradores) {
     const colaboradoresContainer = document.getElementById('colaboradores-container');
     colaboradoresContainer.innerHTML = '';
@@ -93,12 +107,9 @@ function atualizarListaColaboradores(colaboradores) {
         `;
         colaboradoresContainer.appendChild(div);
     });
-
-    // Atualiza as cores de todos os colaboradores após atualizar a lista
     atualizarCoresDeTodosOsColaboradores();
 }
 
-// Função para atualizar a cor do status de um colaborador
 function atualizarCorStatus(elemento, status) {
     let h1 = elemento.querySelector("h1");
     let h2 = elemento.querySelector("h2");
@@ -113,4 +124,38 @@ function atualizarCorStatus(elemento, status) {
         h2.style.backgroundColor = "#90EE90";
         h3.style.backgroundColor = "#90EE90";
     }
+}
+
+function atualizarColaborador(dados) {
+    const colaboradorElement = document.getElementById(`colaborador-${dados.id}`);
+
+    if (colaboradorElement) {
+        const localizacaoElement = colaboradorElement.querySelector('h2');
+        const statusElement = colaboradorElement.querySelector('h3');
+        const imagemElement = colaboradorElement.querySelector('img');
+
+        if (dados.localizacao) {
+            localizacaoElement.textContent = dados.localizacao;
+        }
+        if (dados.status) {
+            statusElement.textContent = dados.status;
+            atualizarCorStatus(colaboradorElement, dados.status.toLowerCase());
+        }
+        if (dados.imagemUrl) {
+            imagemElement.src = dados.imagemUrl;
+        }
+    } else {
+        const colaboradorContainer = document.getElementById('colaboradores-container');
+        const div = document.createElement('div');
+        div.classList.add('colaborador');
+        div.id = `colaborador-${dados.id}`;
+        div.innerHTML = `
+            <img src="${dados.imagemUrl}" alt="Imagem do Colaborador"> <!-- Adiciona a imagem -->
+            <h1>${dados.nome}</h1>
+            <h2>${dados.localizacao}</h2>
+            <h3 class="status ${dados.status}">${dados.status}</h3>
+        `;
+        colaboradorContainer.appendChild(div);
+    }
+    atualizarCoresDeTodosOsColaboradores();
 }
