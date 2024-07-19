@@ -1,7 +1,14 @@
+document.addEventListener('click', function (event) {
+    const contextMenu = document.getElementById('context-menu');
+    if (!contextMenu.contains(event.target)) {
+        contextMenu.classList.remove('active');
+    }
+});
+
 document.addEventListener("DOMContentLoaded", function () {
     atualizarCoresDeTodosOsColaboradores();
 
-    // ----------WebSocket
+    // WebSocket
     const socket = new WebSocket(`ws://${window.location.host}`);
 
     socket.onopen = function (event) {
@@ -29,9 +36,96 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 
+let colaboradorIdParaAlterarImagem;
+
+function showContextMenu(event, colaboradorId) {
+    event.preventDefault();
+
+    const contextMenu = document.getElementById('context-menu');
+    contextMenu.style.top = `${event.clientY}px`;
+    contextMenu.style.left = `${event.clientX}px`;
+    contextMenu.classList.add('active');
+
+    const deleteOption = document.getElementById('delete-option');
+    deleteOption.onclick = function () {
+        deletarColaborador(colaboradorId);
+    };
+    const alterarOption = document.getElementById('alterar-option');
+    alterarOption.onclick = function () {
+        colaboradorIdParaAlterarImagem = colaboradorId;
+        abrirModalAlterarImagem();
+    };
+}
+
+function abrirModalAlterarImagem() {
+    const modal = document.getElementById('modal-alterar-imagem');
+    modal.style.display = 'block';
+}
+
+function fecharModalAlterarImagem() {
+    const modal = document.getElementById('modal-alterar-imagem');
+    modal.style.display = 'none';
+}
+
+window.onclick = function(event) {
+    const modal = document.getElementById('modal-alterar-imagem');
+    if (event.target === modal) {
+        fecharModalAlterarImagem();
+    }
+}
+
+async function alterarImagemColaborador() {
+    const novaImagemInput = document.getElementById('nova-imagem');
+    const novaImagem = novaImagemInput.files[0];
+
+    if (!novaImagem) {
+        alert('Selecione uma nova imagem.');
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('imagem', novaImagem);
+
+    try {
+        const response = await fetch(`/colaboradores/${colaboradorIdParaAlterarImagem}/imagem`, {
+            method: 'PUT',
+            body: formData
+        });
+
+        if (response.ok) {
+            const resultado = await response.json();
+            const colaboradorDiv = document.getElementById(`colaborador-${colaboradorIdParaAlterarImagem}`);
+            const imgElement = colaboradorDiv.querySelector('img');
+            imgElement.src = resultado.imagem;
+
+            fecharModalAlterarImagem();
+        } else {
+            console.error('Erro ao alterar imagem do colaborador');
+        }
+    } catch (error) {
+        console.error('Erro ao alterar imagem do colaborador', error);
+    }
+}
+
+async function deletarColaborador(colaboradorId) {
+    try {
+        const response = await fetch(`/colaboradores/${colaboradorId}`, {
+            method: 'DELETE',
+        });
+
+        if (response.ok) {
+            const colaboradorDiv = document.getElementById(`colaborador-${colaboradorId}`);
+            colaboradorDiv.remove();
+        } else {
+            console.error('Erro ao deletar colaborador');
+        }
+    } catch (error) {
+        console.error('Erro ao deletar colaborador', error);
+    }
+}
 
 async function atualizarStatus(id, novaLocalizacao) {
-    const newStatus = (novaLocalizacao === null || novaLocalizacao.toLowerCase() === "presente") ? 'disponível' : 'indisponível';
+    const newStatus = (novaLocalizacao === "" || novaLocalizacao.toLowerCase() === "presente") ? 'disponível' : 'indisponível';
 
     try {
         const response = await fetch(`/colaboradores/${id}/status`, {
@@ -43,7 +137,6 @@ async function atualizarStatus(id, novaLocalizacao) {
         });
 
         if (response.ok) {
-
             const colaboradorElement = document.getElementById(`colaborador-${id}`);
             const statusElement = colaboradorElement.querySelector('h3');
             statusElement.textContent = newStatus;
@@ -61,25 +154,47 @@ async function editarLocalizacao(id) {
     const novaLocalizacao = prompt("Informe a nova localização:");
 
     if (novaLocalizacao !== null) {
-        try {
-            const response = await fetch(`/colaboradores/${id}/localizacao`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ localizacao: novaLocalizacao })
-            });
+        if(novaLocalizacao !== ""){
+            try {
+                const response = await fetch(`/colaboradores/${id}/localizacao`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ localizacao: novaLocalizacao })
+                });
 
-            if (response.ok) {
-
-                const localizacaoElement = colaboradorDiv.querySelector('h2');
-                localizacaoElement.textContent = novaLocalizacao;
-                atualizarStatus(id, novaLocalizacao);
-            } else {
-                console.error('Erro ao atualizar localização');
+                if (response.ok) {
+                    const localizacaoElement = colaboradorDiv.querySelector('h2');
+                    localizacaoElement.textContent = novaLocalizacao;
+                    atualizarStatus(id, novaLocalizacao);
+                } else {
+                    console.error('Erro ao atualizar localização');
+                }
+            } catch (error) {
+                console.error('Erro ao atualizar localização', error);
             }
-        } catch (error) {
-            console.error('Erro ao atualizar localização', error);
+        }else{
+            var novaLocalizacaoAux = "presente";
+            try {
+                const response = await fetch(`/colaboradores/${id}/localizacao`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ localizacao: novaLocalizacaoAux })
+                });
+
+                if (response.ok) {
+                    const localizacaoElement = colaboradorDiv.querySelector('h2');
+                    localizacaoElement.textContent = novaLocalizacaoAux;
+                    atualizarStatus(id, novaLocalizacaoAux);
+                } else {
+                    console.error('Erro ao atualizar localização');
+                }
+            } catch (error) {
+                console.error('Erro ao atualizar localização', error);
+            }
         }
     }
 }
@@ -91,7 +206,6 @@ function atualizarCoresDeTodosOsColaboradores() {
         atualizarCorStatus(colaborador, status);
     });
 }
-
 
 function atualizarListaColaboradores(colaboradores) {
     const colaboradoresContainer = document.getElementById('colaboradores-container');
@@ -158,4 +272,71 @@ function atualizarColaborador(dados) {
         colaboradorContainer.appendChild(div);
     }
     atualizarCoresDeTodosOsColaboradores();
+}
+
+function abrirModal() {
+    document.getElementById('modal-colaborador').style.display = 'block';
+}
+
+function fecharModal() {
+    document.getElementById('modal-colaborador').style.display = 'none';
+    location.reload();
+}
+
+window.onclick = function(event) {
+    if (event.target === document.getElementById('modal-colaborador')) {
+        fecharModal();
+    }
+}
+
+async function adicionarColaborador() {
+    const nome = document.getElementById('nome').value;
+    const localizacao = document.getElementById('localizacao').value;
+    const imagemInput = document.getElementById('imagem');
+    const imagem = imagemInput.files[0];
+
+    if (!nome || !localizacao || !imagem) {
+        alert('Todos os campos são obrigatórios.');
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('nome', nome);
+    formData.append('localizacao', localizacao);
+    formData.append('imagem', imagem);
+
+    const status = (localizacao.toLowerCase() === "presente") ? 'disponível' : 'indisponível';
+    formData.append('status', status);
+
+    try {
+        const response = await fetch('/colaboradores', {
+            method: 'POST',
+            body: formData
+        });
+
+        if (response.ok) {
+            const novoColaborador = await response.json();
+            const colaboradorContainer = document.getElementById('colaboradores-container');
+
+            const colaboradorDiv = document.createElement('div');
+            colaboradorDiv.classList.add('colaborador');
+            colaboradorDiv.id = `colaborador-${novoColaborador.id}`;
+
+            colaboradorDiv.innerHTML = `
+                <img src="${novoColaborador.imagem}" alt="Imagem de ${novoColaborador.nome}" onclick="editarLocalizacao(${novoColaborador.id})">
+                <h1>${novoColaborador.nome}</h1>
+                <h2>${novoColaborador.localizacao}</h2>
+                <h3 class="status ${novoColaborador.status}">${novoColaborador.status}</h3>
+            `;
+
+            colaboradorContainer.appendChild(colaboradorDiv);
+            atualizarCorStatus(colaboradorDiv, novoColaborador.status.toLowerCase());
+            
+        } else {
+            console.error('Erro ao adicionar colaborador');
+        }
+    } catch (error) {
+        console.error('Erro ao adicionar colaborador', error);
+    }
+    fecharModal();
 }

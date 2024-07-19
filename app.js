@@ -3,6 +3,7 @@ const bodyParser = require('body-parser');
 const routes = require('./server/routes'); 
 const { atualizarLocalizacaoColaborador } = require('./server/controllers');
 const { wss, broadcast } = require('./utils/websocket');
+const multer = require('multer');
 
 require('dotenv').config();
 
@@ -14,6 +15,19 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.set('view engine', 'ejs');
 app.use(express.static('public'));
 app.use('/scripts', express.static(__dirname + '/scripts'));
+
+
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, 'uploads/');
+    },
+    filename: function (req, file, cb) {
+        cb(null, Date.now() + path.extname(file.originalname));
+    }
+});
+const upload = multer({ storage: storage });
+app.use('/uploads', express.static('uploads'));
+
 
 app.use('/', routes);
 

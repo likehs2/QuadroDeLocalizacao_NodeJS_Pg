@@ -22,7 +22,8 @@ const renderIndex = async (req, res) => {
 };
 
 const addColaborador = async (req, res) => {
-  const { nome, localizacao, imagem, status } = req.body;
+  const { nome, localizacao, status } = req.body;
+  const imagem = req.file ? `/uploads/${req.file.filename}` : null;
   if (!nome || !localizacao || !imagem || !status) {
     return res.status(400).send('Todos os campos são obrigatórios.');
   }
@@ -51,6 +52,20 @@ const updateStatus = async (req, res) => {
   }
 };
 
+const updateImagem = async (req, res) => {
+  const { id } = req.params;
+  const imagem = req.file.path;
+  try {
+      await pool.query('UPDATE colaboradores SET imagem = $1 WHERE id = $2', [imagem, id]);
+      const updatedColaborador = { id, imagem };
+      broadcast(updatedColaborador);
+      res.json(updatedColaborador);
+  } catch (err) {
+      console.error(err);
+      res.status(500).send('Erro ao alterar imagem');
+  }
+};
+
 async function atualizarLocalizacaoColaborador(id, novaLocalizacao) {
   console.log('ID:', id);
   console.log('Nova Localização:', novaLocalizacao);
@@ -68,11 +83,26 @@ async function atualizarLocalizacaoColaborador(id, novaLocalizacao) {
   }
 }
 
+const deleteColaborador = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    await pool.query('delete from colaboradores WHERE id = $1', [id]);
+    const deleteColaborador = { id };
+    broadcast(deleteColaborador);
+    res.send('Colaborador deletado');
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Erro ao deletar colaborador');
+  }
+};
 
 module.exports = {
   getColaboradores,
   addColaborador,
   updateStatus,
   renderIndex,
-  atualizarLocalizacaoColaborador
+  atualizarLocalizacaoColaborador,
+  deleteColaborador,
+  updateImagem
 };
