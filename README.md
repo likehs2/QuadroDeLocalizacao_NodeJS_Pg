@@ -9,3 +9,15 @@ Ao clicar em cima da foto do colaborador, é aberto um prompt para digitar a nov
 ![5](https://github.com/user-attachments/assets/e7ce4165-38fc-4a6f-a30b-c465978a2691)
 
 O Quadro de localização virtual utiliza o banco PostgresSQL como SGBD, e WebSocket para atualização do status em tempo real para o lado do cliente.
+
+
+CREATE DATABASE localizacao_colaboradores;
+
+CREATE TABLE colaboradores (
+  id SERIAL PRIMARY KEY,
+  nome VARCHAR(100) NOT NULL,
+  localizacao VARCHAR(100) NOT NULL,
+  imagem TEXT,
+  status VARCHAR(20) NOT NULL DEFAULT 'disponível'
+);
+
