@@ -21,6 +21,15 @@ const renderIndex = async (req, res) => {
   }
 };
 
+const renderLogin = async (req, res) => {
+  try {
+    res.render('login');
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Erro ao abrir Login');
+  }
+};
+
 const addColaborador = async (req, res) => {
   const { nome, localizacao, status } = req.body;
   const imagem = req.file ? `/uploads/${req.file.filename}` : null;
@@ -104,5 +113,6 @@ module.exports = {
   renderIndex,
   atualizarLocalizacaoColaborador,
   deleteColaborador,
-  updateImagem
+  updateImagem,
+  renderLogin
 };

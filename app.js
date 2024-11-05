@@ -17,6 +17,7 @@ app.use(express.static('public'));
 app.use('/scripts', express.static(__dirname + '/scripts'));
 
 
+
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         cb(null, 'uploads/');

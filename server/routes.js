@@ -1,10 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const { renderIndex, getColaboradores, addColaborador, updateStatus, deleteColaborador, updateImagem } = require('./controllers');
+const { renderIndex, getColaboradores, addColaborador, updateStatus, deleteColaborador, updateImagem, renderLogin } = require('./controllers');
 const multer = require('multer');
 const upload = multer({ dest: 'uploads/' });
 
 router.get('/', renderIndex);
+router.get('/login', renderLogin);
 router.get('/colaboradores', getColaboradores);
 router.post('/colaboradores', upload.single('imagem'), addColaborador);
 router.put('/colaboradores/:id/status', updateStatus);
