@@ -4,6 +4,7 @@ const routes = require('./server/routes');
 const { atualizarLocalizacaoColaborador } = require('./server/controllers');
 const { wss, broadcast } = require('./utils/websocket');
 const multer = require('multer');
+const userRoutes = require('./server/userRoutes');
 
 require('dotenv').config();
 
@@ -31,6 +32,7 @@ app.use('/uploads', express.static('uploads'));
 
 
 app.use('/', routes);
+app.use('/api/auth', userRoutes);
 
 app.put('/colaboradores/:id/localizacao', async (req, res) => {
     const id = req.params.id;
