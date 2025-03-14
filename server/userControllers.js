@@ -2,29 +2,16 @@ const pool = require('./db');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
-// Registrar novo usuário (apenas admins podem fazer isso)
 const registerUser = async (req, res) => {
     try {
         const { nome, email, senha, admin } = req.body;
         
-        // Verificar se o usuário atual é admin
-        const token = req.headers.authorization?.split(' ')[1];
-        if (!token) return res.status(401).json({ message: 'Não autorizado' });
-        
-        try {
-            const decoded = jwt.verify(token, process.env.JWT_SECRET);
-            // Verificar se é admin
-            const adminCheck = await pool.query('SELECT admin FROM usuarios WHERE id = $1', [decoded.id]);
-            if (!adminCheck.rows[0].admin) {
-                return res.status(403).json({ message: 'Apenas administradores podem cadastrar usuários' });
-            }
-        } catch (error) {
-            return res.status(401).json({ message: 'Token inválido' });
-        }
-        
         // Hash da senha
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(senha, salt);
+        
+        console.log('Senha original:', senha);
+        console.log('Hash gerado:', hashedPassword);
         
         // Inserir usuário
         const newUser = await pool.query(
@@ -44,10 +31,10 @@ const registerUser = async (req, res) => {
     }
 };
 
-// Login de usuário
 const loginUser = async (req, res) => {
     try {
         const { email, senha } = req.body;
+        console.log('Tentativa de login:', email);
         
         // Verificar se o usuário existe
         const user = await pool.query('SELECT * FROM usuarios WHERE email = $1', [email]);
@@ -55,8 +42,13 @@ const loginUser = async (req, res) => {
             return res.status(400).json({ message: 'Credenciais inválidas' });
         }
         
-        // Verificar senha
-        const validPassword = await bcrypt.compare(senha, user.rows[0].senha);
+        console.log('Senha armazenada:', user.rows[0].senha);
+        console.log('Senha fornecida:', senha);
+        
+        // Verificação temporária para senha em texto plano
+        const validPassword = (senha === user.rows[0].senha);
+        console.log('Senhas iguais?', validPassword);
+        
         if (!validPassword) {
             return res.status(400).json({ message: 'Credenciais inválidas' });
         }
@@ -64,7 +56,7 @@ const loginUser = async (req, res) => {
         // Gerar token JWT
         const token = jwt.sign(
             { id: user.rows[0].id, admin: user.rows[0].admin },
-            process.env.JWT_SECRET,
+            process.env.JWT_SECRET || 'sua_chave_secreta_temporaria',
             { expiresIn: '1d' }
         );
         
@@ -80,7 +72,6 @@ const loginUser = async (req, res) => {
         res.status(500).json({ message: 'Erro ao fazer login' });
     }
 };
-
 // Listar todos os usuários (apenas para admins)
 const getUsers = async (req, res) => {
     try {

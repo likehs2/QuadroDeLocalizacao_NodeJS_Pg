@@ -112,6 +112,7 @@ router.get('/quadro/:id', authenticate, async (req, res) => {
         res.status(500).send('Erro ao carregar quadro');
     }
 });
+
 //router.get('/colaboradores', getColaboradores);
 //router.post('/colaboradores', upload.single('imagem'), addColaborador);
 //router.put('/colaboradores/:id/status', updateStatus);

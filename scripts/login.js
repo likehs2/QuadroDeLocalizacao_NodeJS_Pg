@@ -21,6 +21,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (response.ok) {
                 const data = await response.json();
+                console.log('Login bem-sucedido:', data); // Log para debug
                 
                 // Salvar token e informações do usuário no localStorage
                 localStorage.setItem('token', data.token);
@@ -31,7 +32,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     admin: data.admin
                 }));
                 
+                console.log('Token salvo:', localStorage.getItem('token')); // Log para debug
+                
                 // Redirecionar para a página de seleção de quadros
+                console.log('Redirecionando para /quadros...'); // Log para debug
                 window.location.href = '/quadros';
             } else {
                 const error = await response.json();
