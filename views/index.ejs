@@ -12,9 +12,11 @@
 <body>
 
     <div class="principal" id="principal">
-        <button id="botaocriar" onclick="abrirModal()">
-            <span id="botaocriar-content">Adicionar Colaborador</span>
-        </button>
+        <% if (isAdmin) { %>
+            <button id="botaocriar" onclick="abrirModal()">
+              <span id="botaocriar-content">Adicionar Colaborador</span>
+            </button>
+            <% } %>
         <h1>Localização T.I</h1>
     </div>
     <div class="atributos" id="atributos">
@@ -43,10 +45,14 @@
 
     <div id="context-menu" class="context-menu">
         <ul>
-            <li id="delete-option">Deletar</li>
-            <li id="alterar-option">Alterar Imagem</li>
+          <% if (isAdmin) { %>
+          <li id="delete-option">Deletar</li>
+          <li id="alterar-option">Alterar Imagem</li>
+          <% } else { %>
+          <li id="view-option">Ver Detalhes</li>
+          <% } %>
         </ul>
-    </div>
+      </div>
 
     <div id="modal-colaborador" class="popup">
         <div class="form">

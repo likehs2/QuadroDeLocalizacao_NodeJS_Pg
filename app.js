@@ -5,18 +5,21 @@ const { atualizarLocalizacaoColaborador } = require('./server/controllers');
 const { wss, broadcast } = require('./utils/websocket');
 const multer = require('multer');
 const userRoutes = require('./server/userRoutes');
+const quadroRoutes = require('./server/quadroRoutes');
+const cookieParser = require('cookie-parser');
+
 
 require('dotenv').config();
 
 const app = express();
 const port = process.env.PORT || 3095;
-
+app.use(cookieParser());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.set('view engine', 'ejs');
 app.use(express.static('public'));
 app.use('/scripts', express.static(__dirname + '/scripts'));
-
+app.use('/api/quadros', quadroRoutes);
 
 
 const storage = multer.diskStorage({

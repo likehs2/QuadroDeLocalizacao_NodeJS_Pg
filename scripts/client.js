@@ -1,3 +1,6 @@
+let isAdmin = false;
+let userId = null;
+
 document.addEventListener('click', function (event) {
     const contextMenu = document.getElementById('context-menu');
     if (!contextMenu.contains(event.target)) {
@@ -6,7 +9,14 @@ document.addEventListener('click', function (event) {
 });
 
 document.addEventListener("DOMContentLoaded", function () {
+    const userDataElement = document.getElementById('user-data');
+    if (userDataElement) {
+        isAdmin = userDataElement.dataset.isAdmin === 'true';
+        userId = userDataElement.dataset.userId;
+    }
+    setupContextMenu();
     atualizarCoresDeTodosOsColaboradores();
+    
 
     // WebSocket
     const socket = new WebSocket(`ws://${window.location.host}`);
@@ -35,7 +45,20 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 });
-
+function setupContextMenu() {
+    const deleteOption = document.getElementById('delete-option');
+    const alterarOption = document.getElementById('alterar-option');
+    
+    // Se não for admin, desativar opções de administrador
+    if (!isAdmin) {
+        if (deleteOption) {
+            deleteOption.style.display = 'none';
+        }
+        if (alterarOption) {
+            alterarOption.style.display = 'none';
+        }
+    }
+}
 let colaboradorIdParaAlterarImagem;
 
 function showContextMenu(event, colaboradorId) {
@@ -108,6 +131,10 @@ async function alterarImagemColaborador() {
 }
 
 async function deletarColaborador(colaboradorId) {
+    if (!isAdmin) {
+        alert('Apenas administradores podem excluir colaboradores.');
+        return;
+    }
     try {
         const response = await fetch(`/colaboradores/${colaboradorId}`, {
             method: 'DELETE',
