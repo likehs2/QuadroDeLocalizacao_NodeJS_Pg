@@ -3,11 +3,13 @@ const router = express.Router();
 const {
     getQuadrosUsuario,
     criarQuadro,
-    getQuadro
+    getQuadro,
+    getQuadrosUsuarioTela
 } = require('./quadroControllers');
 
 // Rotas para quadros
-router.get('/', getQuadrosUsuario);
+router.get('/acesso/:id/:admin', getQuadrosUsuario);
+router.get('/tela/:id/:admin', getQuadrosUsuarioTela);
 router.post('/', criarQuadro);
 router.get('/:id', getQuadro);
 

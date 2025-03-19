@@ -1,64 +1,65 @@
-// Variáveis globais
-let modalNovoQuadro;
-
-// Inicialização quando o documento estiver pronto
-document.addEventListener('DOMContentLoaded', function() {
-    // Inicializar o modal Bootstrap se existir
-    const modalElement = document.getElementById('modalNovoQuadro');
-    if (modalElement) {
-        modalNovoQuadro = new bootstrap.Modal(modalElement);
-    }
-});
-
-// Função para abrir o modal de novo quadro
-function abrirModalNovoQuadro() {
-    if (modalNovoQuadro) {
-        modalNovoQuadro.show();
-    }
-}
-
-// Função para criar um novo quadro
-async function criarQuadro() {
-    const nome = document.getElementById('nomeQuadro').value.trim();
-    const descricao = document.getElementById('descricaoQuadro').value.trim();
+document.addEventListener('DOMContentLoaded', async function () {
+    const token = localStorage.getItem('token');
+    const userJson = localStorage.getItem('user');
     
-    if (!nome) {
-        alert('Por favor, informe um nome para o quadro.');
+    if (!token || !userJson) {
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('error-message').style.display = 'block';
+        document.getElementById('error-message').textContent = 'Você precisa fazer login para acessar esta página.';
         return;
     }
-    
-    try {
-        const token = localStorage.getItem('token');
-        if (!token) {
-            window.location.href = '/login';
-            return;
-        }
-        
-        const response = await fetch('/api/quadros', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({ nome, descricao })
-        });
-        
-        if (response.ok) {
-            // Recarregar a página para mostrar o novo quadro
-            window.location.reload();
-        } else {
-            const error = await response.json();
-            alert(`Erro ao criar quadro: ${error.message || 'Erro desconhecido'}`);
-        }
-    } catch (error) {
-        console.error('Erro ao criar quadro:', error);
-        alert('Ocorreu um erro ao criar o quadro. Tente novamente mais tarde.');
-    }
-}
 
-// Função para fazer logout
-function logout() {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    window.location.href = '/login';
-}
+    try {
+        const user = JSON.parse(userJson);
+        console.log('Usuário logado:', user);
+
+        // Usando o ID do usuário e a flag admin para formar a URL
+        const id = user.id;
+        const admin = user.admin;
+
+        // Fazer requisição para obter os quadros
+        console.log('Token enviado:', token);
+        const response = await fetch(`/api/quadros/tela/${id}/${admin}`);
+
+        if (!response.ok) {
+            throw new Error('Falha ao carregar quadros');
+        }
+
+        const quadros = await response.json();
+        console.log('Quadros carregados:', quadros);
+
+        // Esconder loading
+        document.getElementById('loading').style.display = 'none';
+
+        // Mostrar container de quadros
+        const quadrosContainer = document.getElementById('quadros-container');
+        quadrosContainer.style.display = 'block';
+
+        if (Array.isArray(quadros)) {
+            quadros.forEach(quadro => {
+                const item = document.createElement('a');
+                item.href = `/quadro/${quadro.id}`;
+                item.className = 'list-group-item list-group-item-action';
+                item.textContent = quadro.nome;
+                listGroup.appendChild(item);
+            });
+        } else {
+            console.error('Os dados não são um array:', quadros);
+            // Aqui, você pode exibir uma mensagem de erro ou outro comportamento
+        }
+        
+
+    } catch (error) {
+        console.error('Erro:', error);
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('error-message').style.display = 'block';
+        document.getElementById('error-message').textContent = `Erro ao carregar quadros: ${error.message}`;
+    }
+
+    // Configurar botão de logout
+    document.getElementById('logout-btn').addEventListener('click', function () {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+    });
+});

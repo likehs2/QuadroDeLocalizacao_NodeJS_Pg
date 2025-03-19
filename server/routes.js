@@ -112,7 +112,13 @@ router.get('/quadro/:id', authenticate, async (req, res) => {
         res.status(500).send('Erro ao carregar quadro');
     }
 });
-
+router.get('/quadros', async (req, res) => {
+    console.log('Acessando rota /quadros');
+    
+    // Verificar se há um token no localStorage (isso será feito no cliente)
+    // Aqui apenas renderizamos a página
+    res.render('quadros', { title: 'Seleção de Quadros' });
+});
 //router.get('/colaboradores', getColaboradores);
 //router.post('/colaboradores', upload.single('imagem'), addColaborador);
 //router.put('/colaboradores/:id/status', updateStatus);

@@ -42,12 +42,9 @@ const loginUser = async (req, res) => {
             return res.status(400).json({ message: 'Credenciais inválidas' });
         }
         
-        console.log('Senha armazenada:', user.rows[0].senha);
-        console.log('Senha fornecida:', senha);
         
         // Verificação temporária para senha em texto plano
         const validPassword = (senha === user.rows[0].senha);
-        console.log('Senhas iguais?', validPassword);
         
         if (!validPassword) {
             return res.status(400).json({ message: 'Credenciais inválidas' });
@@ -67,6 +64,7 @@ const loginUser = async (req, res) => {
             admin: user.rows[0].admin,
             token
         });
+
     } catch (error) {
         console.error('Erro ao fazer login:', error);
         res.status(500).json({ message: 'Erro ao fazer login' });

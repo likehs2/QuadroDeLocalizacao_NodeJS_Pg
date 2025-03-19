@@ -21,7 +21,14 @@ app.use(express.static('public'));
 app.use('/scripts', express.static(__dirname + '/scripts'));
 app.use('/api/quadros', quadroRoutes);
 
-
+/*
+app.post('/quadros', async (req, res) => {
+    res.render('quadros')
+});
+app.get('/quadros', (req, res) => {
+    res.render('quadros'); // Certifique-se de que existe um arquivo "quadros.ejs" dentro da pasta "views"
+});
+*/
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         cb(null, 'uploads/');

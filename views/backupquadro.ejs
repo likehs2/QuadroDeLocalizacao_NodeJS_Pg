@@ -24,7 +24,7 @@
                         <h3>Quadros de Localização</h3>
                     </div>
                     <div class="card-body">
-                        <div id="loading" class="text-center" style="display: none;">
+                        <div id="loading" class="text-center">
                             <div class="spinner-border text-primary" role="status">
                                 <span class="visually-hidden">Carregando...</span>
                             </div>
@@ -32,18 +32,7 @@
                         </div>
                         <div id="error-message" class="alert alert-danger" style="display: none;"></div>
                         <div id="quadros-container" style="display: none;">
-                            <!-- Quadros serão carregados aqui -->
-                            <% if (quadros.length > 0) { %>
-                                <div class="list-group">
-                                    <% quadros.forEach(function(quadro) { %>
-                                        <a href="/quadro/<%= quadro.id %>" class="list-group-item list-group-item-action">
-                                            <%= quadro.nome %>
-                                        </a>
-                                    <% }); %>
-                                </div>
-                            <% } else { %>
-                                <div class="alert alert-info">Você não tem acesso a nenhum quadro de localização.</div>
-                            <% } %>
+                            <!-- Os quadros serão carregados aqui via JavaScript -->
                         </div>
                     </div>
                     <div class="card-footer">
@@ -54,6 +43,8 @@
         </div>
     </div>
 
-    <script src="/scripts/quadros.js"></script>
+    <script>src="/scripts/quadros.js"/*
+        */
+    </script>
 </body>
 </html>
