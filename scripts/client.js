@@ -1,4 +1,3 @@
-let isAdmin = false;
 let userId = null;
 let idDoQuadro = 0;
 
@@ -6,7 +5,7 @@ document.addEventListener('click', function (event) {
     const contextMenu = document.getElementById('context-menu');
     if (!contextMenu.contains(event.target)) {
         contextMenu.classList.remove('active');
-        
+
     }
 });
 
@@ -14,7 +13,13 @@ document.addEventListener("DOMContentLoaded", function () {
     atualizarCoresDeTodosOsColaboradores();
     const idQuadro = document.body.getAttribute('data-id-quadro');
     idDoQuadro = idQuadro;
-    
+    const userData = localStorage.getItem("user");
+    if (userData) {
+        const user = JSON.parse(userData);
+        if (user.admin) {
+            document.getElementById("botaocriar").style.display = "block";
+        }
+    }
 
     // WebSocket
     const socket = new WebSocket(`ws://${window.location.host}`);
@@ -49,21 +54,31 @@ let colaboradorIdParaAlterarImagem;
 function showContextMenu(event, colaboradorId) {
     event.preventDefault();
     console.log('Botão direito clicado em colaborador', colaboradorId);
+    const userData = localStorage.getItem("user");
+    if (userData) {
+        const user = JSON.parse(userData);
+        const isAdmin = user.admin;
 
-    const contextMenu = document.getElementById('context-menu');
-    contextMenu.style.top = `${event.clientY}px`;
-    contextMenu.style.left = `${event.clientX}px`;
-    contextMenu.classList.add('active');
+        console.log("Usuário é admin?", isAdmin);
+        if (isAdmin == true) {
+            const contextMenu = document.getElementById('context-menu');
+            contextMenu.style.top = `${event.clientY}px`;
+            contextMenu.style.left = `${event.clientX}px`;
+            contextMenu.classList.add('active');
 
-    const deleteOption = document.getElementById('delete-option');
-    deleteOption.onclick = function () {
-        deletarColaborador(colaboradorId);
-    };
-    const alterarOption = document.getElementById('alterar-option');
-    alterarOption.onclick = function () {
-        colaboradorIdParaAlterarImagem = colaboradorId;
-        abrirModalAlterarImagem();
-    };
+            const deleteOption = document.getElementById('delete-option');
+            deleteOption.onclick = function () {
+                deletarColaborador(colaboradorId);
+            };
+            const alterarOption = document.getElementById('alterar-option');
+            alterarOption.onclick = function () {
+                colaboradorIdParaAlterarImagem = colaboradorId;
+                abrirModalAlterarImagem();
+            };
+        }
+    } else {
+        console.log("Nenhum usuário encontrado no localStorage.");
+    }
 }
 
 function abrirModalAlterarImagem() {
@@ -76,7 +91,7 @@ function fecharModalAlterarImagem() {
     modal.style.display = 'none';
 }
 
-window.onclick = function(event) {
+window.onclick = function (event) {
     const modal = document.getElementById('modal-alterar-imagem');
     if (event.target === modal) {
         fecharModalAlterarImagem();
@@ -117,7 +132,7 @@ async function alterarImagemColaborador() {
 }
 
 async function deletarColaborador(colaboradorId) {
-    
+
     try {
         const response = await fetch(`/colaboradores/${colaboradorId}`, {
             method: 'DELETE',
@@ -164,7 +179,7 @@ async function editarLocalizacao(id) {
     const novaLocalizacao = prompt("Informe a nova localização:");
 
     if (novaLocalizacao !== null) {
-        if(novaLocalizacao !== ""){
+        if (novaLocalizacao !== "") {
             try {
                 const response = await fetch(`/colaboradores/${id}/localizacao`, {
                     method: 'PUT',
@@ -184,7 +199,7 @@ async function editarLocalizacao(id) {
             } catch (error) {
                 console.error('Erro ao atualizar localização', error);
             }
-        }else{
+        } else {
             var novaLocalizacaoAux = "presente";
             try {
                 const response = await fetch(`/colaboradores/${id}/localizacao`, {
@@ -293,7 +308,7 @@ function fecharModal() {
     location.reload();
 }
 
-window.onclick = function(event) {
+window.onclick = function (event) {
     if (event.target === document.getElementById('modal-colaborador')) {
         fecharModal();
     }
@@ -343,7 +358,7 @@ async function adicionarColaborador() {
 
             colaboradorContainer.appendChild(colaboradorDiv);
             atualizarCorStatus(colaboradorDiv, novoColaborador.status.toLowerCase());
-            
+
         } else {
             console.error('Erro ao adicionar colaborador');
         }
