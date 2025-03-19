@@ -18,7 +18,7 @@ router.get('/users', getUsers);
 router.delete('/users/:id', deleteUser);
 
 // Rotas de gerenciamento de acesso
-router.post('/access', manageQuadroAccess);
-router.get('/quadros', getUserQuadros);
+//router.post('/access', manageQuadroAccess);
+//router.get('/quadros', getUserQuadros);
 
 module.exports = router;

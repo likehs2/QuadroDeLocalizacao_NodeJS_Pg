@@ -1,19 +1,21 @@
 let isAdmin = false;
 let userId = null;
-let idDoQuadro = 0;
 
 document.addEventListener('click', function (event) {
     const contextMenu = document.getElementById('context-menu');
     if (!contextMenu.contains(event.target)) {
         contextMenu.classList.remove('active');
-        
     }
 });
 
 document.addEventListener("DOMContentLoaded", function () {
+    const userDataElement = document.getElementById('user-data');
+    if (userDataElement) {
+        isAdmin = userDataElement.dataset.isAdmin === 'true';
+        userId = userDataElement.dataset.userId;
+    }
+    setupContextMenu();
     atualizarCoresDeTodosOsColaboradores();
-    const idQuadro = document.body.getAttribute('data-id-quadro');
-    idDoQuadro = idQuadro;
     
 
     // WebSocket
@@ -43,12 +45,24 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 });
-
+function setupContextMenu() {
+    const deleteOption = document.getElementById('delete-option');
+    const alterarOption = document.getElementById('alterar-option');
+    
+    // Se não for admin, desativar opções de administrador
+    if (!isAdmin) {
+        if (deleteOption) {
+            deleteOption.style.display = 'none';
+        }
+        if (alterarOption) {
+            alterarOption.style.display = 'none';
+        }
+    }
+}
 let colaboradorIdParaAlterarImagem;
 
 function showContextMenu(event, colaboradorId) {
     event.preventDefault();
-    console.log('Botão direito clicado em colaborador', colaboradorId);
 
     const contextMenu = document.getElementById('context-menu');
     contextMenu.style.top = `${event.clientY}px`;
@@ -117,7 +131,10 @@ async function alterarImagemColaborador() {
 }
 
 async function deletarColaborador(colaboradorId) {
-    
+    if (!isAdmin) {
+        alert('Apenas administradores podem excluir colaboradores.');
+        return;
+    }
     try {
         const response = await fetch(`/colaboradores/${colaboradorId}`, {
             method: 'DELETE',
@@ -304,7 +321,6 @@ async function adicionarColaborador() {
     const localizacao = document.getElementById('localizacao').value;
     const imagemInput = document.getElementById('imagem');
     const imagem = imagemInput.files[0];
-    const quadro_id = idDoQuadro
 
     if (!nome || !localizacao || !imagem) {
         alert('Todos os campos são obrigatórios.');
@@ -315,7 +331,6 @@ async function adicionarColaborador() {
     formData.append('nome', nome);
     formData.append('localizacao', localizacao);
     formData.append('imagem', imagem);
-    formData.append('quadro_id', quadro_id);
 
     const status = (localizacao.toLowerCase() === "presente") ? 'disponível' : 'indisponível';
     formData.append('status', status);

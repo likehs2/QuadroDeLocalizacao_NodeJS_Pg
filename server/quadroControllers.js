@@ -110,29 +110,7 @@ const getQuadro = async (req, res) => {
             return res.status(404).json({ message: 'Quadro não encontrado' });
         }
         
-        // Se não for admin, verificar se tem acesso
-        if (!isAdmin) {
-            const acesso = await pool.query(
-                'SELECT * FROM usuario_quadro WHERE usuario_id = $1 AND quadro_id = $2',
-                [userId, id]
-            );
-            
-            if (acesso.rows.length === 0) {
-                return res.status(403).json({ message: 'Você não tem acesso a este quadro' });
-            }
-        }
-        
-        // Obter colaboradores do quadro
-        const colaboradores = await pool.query(
-            'SELECT * FROM colaboradores WHERE quadro_id = $1 ORDER BY nome',
-            [id]
-        );
-        
-        res.json({
-            quadro: quadro.rows[0],
-            colaboradores: colaboradores.rows,
-            isAdmin
-        });
+        res.render('index', { quadro: quadro.rows[0] });
     } catch (error) {
         console.error('Erro ao obter quadro:', error);
         res.status(500).json({ message: 'Erro ao obter quadro' });
